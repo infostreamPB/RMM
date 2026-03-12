@@ -8,8 +8,8 @@ set SCRIPTFILE=%TEMP%\RemoveRMM.ps1
 
 echo Downloading RMM removal script...
 
-:: Use single-line PowerShell command, no ^, all in quotes
-cmd /c powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
+:: Download the script using PowerShell on a single line
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
 
 :: Check if download succeeded
 if exist "%SCRIPTFILE%" (
