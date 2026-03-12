@@ -3,16 +3,15 @@
 :: RMM Removal One-Click
 :: ==========================
 
-:: Set script URL and temp location
 set SCRIPTURL=https://raw.githubusercontent.com/infostreamPB/RMM/main/RemoveRMM.ps1
 set SCRIPTFILE=%TEMP%\RemoveRMM.ps1
 
 echo Downloading RMM removal script...
 
-:: Use PowerShell to download with TLS 1.2
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; " ^
-"Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
+:: Use PowerShell to download the script with TLS 1.2
+powershell -NoProfile -ExecutionPolicy Bypass -Command " \
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
 
 :: Check if download succeeded
 if exist "%SCRIPTFILE%" (
