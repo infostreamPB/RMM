@@ -1,4 +1,5 @@
-﻿wmic product where "name like '%ITSPlatform%'" call uninstall /nointeractive
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+ wmic product where "name like '%ITSPlatform%'" call uninstall /nointeractive
 
 
 Stop-Service -Name "SAAZappr"
@@ -20,4 +21,5 @@ Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZDPMACTL" -Force
 Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZRemoteSupport" -Force
 Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZScheduler" -Force
 Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZServerPlus" -Force
+
 Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZWatchDog" -Force
