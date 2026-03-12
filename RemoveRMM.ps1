@@ -1,19 +1,55 @@
-# Force TLS 1.2 for any web actions (optional if you download scripts)
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# -------------------------------
+# Robust Offline RMM Cleanup Script
+# -------------------------------
 
-# Uninstall software safely
-try {
-    $apps = Get-Package -Name "*ITSPlatform*" -ErrorAction SilentlyContinue
-    foreach ($app in $apps) {
-        Write-Host "Uninstalling $($app.Name)..."
-        Uninstall-Package $app -Force -ErrorAction SilentlyContinue
+# ITSPlatform Product GUID
+$ITSPlatformGUID = "{18f39771-f9d8-4cfd-9654-f6c67c8ad9f4}"
+
+function Uninstall-ITSPlatform {
+    Write-Host "Attempting to uninstall ITSPlatform..."
+
+    # Option 1: WMIC
+    if (Get-Command wmic -ErrorAction SilentlyContinue) {
+        Write-Host "Using WMIC to uninstall ITSPlatform..."
+        wmic product where "name like '%ITSPlatform%'" call uninstall /nointeractive
+        return
     }
-} catch {
-    Write-Host "No ITSPlatform package found, skipping."
+
+    # Option 2: PowerShell PackageManagement
+    if (Get-Command Get-Package -ErrorAction SilentlyContinue) {
+        $pkg = Get-Package | Where-Object { $_.Name -like '*ITSPlatform*' }
+        if ($pkg) {
+            Write-Host "Using PowerShell PackageManagement to uninstall ITSPlatform..."
+            foreach ($p in $pkg) {
+                Uninstall-Package -Name $p.Name -Force -ErrorAction SilentlyContinue
+            }
+            return
+        }
+    }
+
+    # Option 3: MSIExec
+    if (Test-Path "C:\Windows\System32\msiexec.exe") {
+        Write-Host "Using MSIExec to uninstall ITSPlatform..."
+        Start-Process msiexec.exe -ArgumentList "/x $ITSPlatformGUID /qn /norestart" -Wait
+        return
+    }
+
+    Write-Warning "Unable to uninstall ITSPlatform using WMIC, PackageManagement, or MSIExec. Will remove folders manually."
 }
 
+# Run uninstall
+Uninstall-ITSPlatform
+
 # Stop services safely
-$services = "SAAZappr","SAAZDPMACTL","SAAZRemoteSupport","SAAZScheduler","SAAZServerPlus","SAAZWatchDog"
+$services = @(
+    "SAAZappr",
+    "SAAZDPMACTL",
+    "SAAZRemoteSupport",
+    "SAAZScheduler",
+    "SAAZServerPlus",
+    "SAAZWatchDog"
+)
+
 foreach ($svc in $services) {
     if (Get-Service -Name $svc -ErrorAction SilentlyContinue) {
         Write-Host "Stopping service $svc..."
@@ -22,7 +58,11 @@ foreach ($svc in $services) {
 }
 
 # Remove program folders safely
-$folders = "C:\Program Files (x86)\SAAZOD","C:\Program Files (x86)\SAAZODBKP"
+$folders = @(
+    "C:\Program Files (x86)\SAAZOD",
+    "C:\Program Files (x86)\SAAZODBKP"
+)
+
 foreach ($folder in $folders) {
     if (Test-Path $folder) {
         Write-Host "Removing folder $folder..."
@@ -30,10 +70,11 @@ foreach ($folder in $folders) {
     }
 }
 
-# Remove registry properties and keys safely
+# Remove registry properties safely
 $regProps = @(
     @{ Path = "HKLM:\SOFTWARE\Microsoft\Virtual Machine\Guest"; Name = "ITSPlatformID" }
 )
+
 foreach ($prop in $regProps) {
     if (Get-ItemProperty -Path $prop.Path -Name $prop.Name -ErrorAction SilentlyContinue) {
         Write-Host "Removing registry property $($prop.Name)..."
@@ -41,6 +82,7 @@ foreach ($prop in $regProps) {
     }
 }
 
+# Remove registry keys safely
 $regKeys = @(
     "HKLM:\SOFTWARE\WOW6432Node\SAAZOD",
     "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZappr",
@@ -50,6 +92,7 @@ $regKeys = @(
     "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZServerPlus",
     "HKLM:\SYSTEM\CurrentControlSet\Services\SAAZWatchDog"
 )
+
 foreach ($key in $regKeys) {
     if (Test-Path $key) {
         Write-Host "Removing registry key $key..."
@@ -57,4 +100,4 @@ foreach ($key in $regKeys) {
     }
 }
 
-Write-Host "RMM cleanup complete."
+Write-Host "`nRMM cleanup complete."
