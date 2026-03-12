@@ -8,10 +8,8 @@ set SCRIPTFILE=%TEMP%\RemoveRMM.ps1
 
 echo Downloading RMM removal script...
 
-:: Use PowerShell to download the script with TLS 1.2
-powershell -NoProfile -ExecutionPolicy Bypass -Command " \
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
+:: One-line PowerShell download and TLS 1.2 forcing
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%SCRIPTURL%' -OutFile '%SCRIPTFILE%' -UseBasicParsing"
 
 :: Check if download succeeded
 if exist "%SCRIPTFILE%" (
