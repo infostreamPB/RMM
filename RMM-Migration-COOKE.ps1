@@ -15,7 +15,7 @@ $Transcript = "$WorkDir\migration-transcript.log"
 # REPLACE THE URL BELOW WITH YOUR NEW AGENT DOWNLOAD URL
 # Get this URL from the ConnectWise Automate/ScreenConnect RMM portal
 # =====================================================================
-$NewAgentUrl  = "https://prod.setup.itsupport247.net/windows/BareboneAgent/32/Main-Palm_Beach_Opera_Windows_OS_ITSPlatform_TKN4a8260e7-fc13-4d04-908c-f0683e482fa6/MSI/setup"
+$NewAgentUrl  = "https://prod.setup.itsupport247.net/windows/BareboneAgent/32/Cooke_Associates-Cooke_Associates_Windows_OS_ITSPlatform_TKNa8699ecb-c908-4dbb-a94f-5b23d30f3706/MSI/setup"
 # =====================================================================
 # DO NOT MODIFY ANYTHING BELOW THIS LINE
 # =====================================================================
