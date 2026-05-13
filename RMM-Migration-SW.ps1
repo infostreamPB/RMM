@@ -23,8 +23,12 @@ $NewAgentArgs = "/quiet /norestart ALLUSERS=1"
 $NewAgentInstallPath = "C:\Program Files (x86)\ITSPlatform"
 $UninstallExe = "C:\PROGRA~2\SAAZOD\Uninstall\uninstall.exe"
 
-# Clean up any previous run
-if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
+# Only clean up WorkDir if the scheduled task does NOT already exist
+# If the task exists, this is a re-run (e.g. after reboot) â€” preserve runner.ps1
+$existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+if (-not $existingTask) {
+    if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
+}
 
 if (!(Test-Path $WorkDir)) { New-Item $WorkDir -ItemType Directory -Force | Out-Null }
 
@@ -510,9 +514,11 @@ if ($is2012R2) {
         -Execute "powershell.exe" `
         -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`""
 
-    $Trigger = New-ScheduledTaskTrigger `
+    # Two triggers: run in 1 minute AND at startup (in case reboot is needed)
+    $TriggerOnce = New-ScheduledTaskTrigger `
         -Once `
         -At (Get-Date).AddMinutes(1)
+    $TriggerStartup = New-ScheduledTaskTrigger -AtStartup
 
     $Principal = New-ScheduledTaskPrincipal `
         -UserId "SYSTEM" `
@@ -522,7 +528,7 @@ if ($is2012R2) {
     Register-ScheduledTask `
         -TaskName $TaskName `
         -Action $Action `
-        -Trigger $Trigger `
+        -Trigger @($TriggerOnce, $TriggerStartup) `
         -Principal $Principal `
         -Force
 } else {
@@ -530,10 +536,12 @@ if ($is2012R2) {
     # WINDOWS SERVER 2016+ / WINDOWS 10+ SCHEDULED TASK REGISTRATION
     # =====================================================================
     $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`""
-    $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
+    # Two triggers: run in 1 minute AND at startup (in case reboot is needed)
+    $TriggerOnce = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
+    $TriggerStartup = New-ScheduledTaskTrigger -AtStartup
     $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -RunLevel Highest
 
-    Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Force
+    Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger @($TriggerOnce, $TriggerStartup) -Principal $Principal -Force
 }
 
 Write-Host "Task registered. The downloaded file will keep its original filename from the server."
