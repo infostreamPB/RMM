@@ -24,7 +24,7 @@ $NewAgentInstallPath = "C:\Program Files (x86)\ITSPlatform"
 $UninstallExe = "C:\PROGRA~2\SAAZOD\Uninstall\uninstall.exe"
 
 # Only clean up WorkDir if the scheduled task does NOT already exist
-# If the task exists, this is a re-run (e.g. after reboot) â€” preserve runner.ps1
+# If the task exists, this is a re-run (e.g. after reboot) - preserve runner.ps1
 $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 if (-not $existingTask) {
     if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
@@ -321,7 +321,7 @@ if (-not (Test-Path $agentPath)) {{
 }} else {{
     $msiSize = (Get-Item $agentPath).Length
     if ($msiSize -lt 1048576) {{  # Less than 1MB is suspicious for an MSI
-        Write-Log "  WARNING: MSI file is only $msiSize bytes â€” possibly corrupt or incomplete download" "WARN"
+        Write-Log "  WARNING: MSI file is only $msiSize bytes - possibly corrupt or incomplete download" "WARN"
     }} else {{
         Write-Log "  PASSED: MSI file exists ($msiSize bytes)."
     }}
@@ -350,7 +350,7 @@ $disk = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='$installDrive'" -Erro
 if ($disk) {{
     $freeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
     if ($freeGB -lt 1) {{
-        Write-Log "  BLOCKED: Only $freeGB GB free on $installDrive â€” need at least 1 GB" "ERROR"
+        Write-Log "  BLOCKED: Only $freeGB GB free on $installDrive - need at least 1 GB" "ERROR"
         $prereqFailed = $true
     }} else {{
         Write-Log "  PASSED: $freeGB GB free on $installDrive."
@@ -500,7 +500,7 @@ Stop-Transcript
 $Runner = $RunnerTemplate -f $WorkDir, $LogFile, $Transcript, $NewAgentUrl, $NewAgentArgs, $NewAgentInstallPath, $UninstallExe, $TaskName
 
 # Save script
-$Runner | Set-Content $ScriptPath -Force -Encoding UTF8
+$Runner | Out-File -FilePath $ScriptPath -Force -Encoding ASCII
 
 # Detect OS version for compatibility
 $osVersion = [System.Environment]::OSVersion.Version
