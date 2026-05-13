@@ -511,8 +511,9 @@ if ($is2012R2) {
     # WINDOWS SERVER 2012 R2 COMPATIBLE SCHEDULED TASK REGISTRATION
     # =====================================================================
     $Action = New-ScheduledTaskAction `
-        -Execute "powershell.exe" `
-        -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`""
+        -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" `
+        -Argument "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$ScriptPath`"" `
+        -WorkingDirectory $WorkDir
 
     # Two triggers: run in 1 minute AND at startup (in case reboot is needed)
     $TriggerOnce = New-ScheduledTaskTrigger `
@@ -535,7 +536,7 @@ if ($is2012R2) {
     # =====================================================================
     # WINDOWS SERVER 2016+ / WINDOWS 10+ SCHEDULED TASK REGISTRATION
     # =====================================================================
-    $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`""
+    $Action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$ScriptPath`"" -WorkingDirectory $WorkDir
     # Two triggers: run in 1 minute AND at startup (in case reboot is needed)
     $TriggerOnce = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
     $TriggerStartup = New-ScheduledTaskTrigger -AtStartup
