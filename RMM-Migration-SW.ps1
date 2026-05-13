@@ -300,39 +300,26 @@ Write-Log "  PASSED: No blocking processes running."
 Write-Log "CHECK 3: Verifying install directory is clean..."
 if (Test-Path $InstallPath) {{
     $fileCount = (Get-ChildItem -Path $InstallPath -Recurse -File -ErrorAction SilentlyContinue).Count
-    Write-Log "  WARNING: Install path exists with $fileCount file(s). Removing..." "WARN"
-    # Retry deletion up to 5 times (folder may be held open briefly after uninstall)
-    $deleted = $false
-    for ($retry = 1; $retry -le 5; $retry++) {{
+    if ($fileCount -gt 0) {{
+        Write-Log "  WARNING: Install path has $fileCount file(s). Removing..." "WARN"
         Remove-Item -Path $InstallPath -Recurse -Force -ErrorAction SilentlyContinue
         Start-Sleep 3
-        if (-not (Test-Path $InstallPath)) {{
-            Write-Log "  Cleaned: Install directory removed successfully (attempt $retry)."
-            $deleted = $true
-            break
-        }}
-        Write-Log "  Retry $retry/5 - folder still exists, waiting..." "WARN"
-    }}
-    if (-not $deleted) {{
-        # Last resort: try cmd /c rd which can sometimes release handles
-        cmd /c "rd /s /q `"$InstallPath`"" 2>&1 | Out-Null
-        Start-Sleep 2
         if (Test-Path $InstallPath) {{
-            Write-Log "  BLOCKED: Cannot delete install directory after 5 retries. Continuing anyway (empty folder)." "WARN"
-            # Only block if the folder actually has files - an empty folder won't prevent install
             $remainingFiles = (Get-ChildItem -Path $InstallPath -Recurse -File -ErrorAction SilentlyContinue).Count
             if ($remainingFiles -gt 0) {{
-                Write-Log "  ERROR: Directory has $remainingFiles file(s) that cannot be removed." "ERROR"
+                Write-Log "  BLOCKED: $remainingFiles file(s) cannot be removed (locked)." "ERROR"
                 $prereqFailed = $true
             }} else {{
-                Write-Log "  Empty directory - proceeding with install (MSI will use it)."
+                Write-Log "  OK: Files removed. Empty folder remains (MSI will reuse it)."
             }}
         }} else {{
-            Write-Log "  Cleaned: Install directory removed via cmd fallback."
+            Write-Log "  Cleaned: Install directory removed successfully."
         }}
+    }} else {{
+        Write-Log "  OK: Install path exists but is empty (MSI will reuse it). Proceeding."
     }}
 }} else {{
-    Write-Log "  PASSED: Install directory is clean."
+    Write-Log "  PASSED: Install directory does not exist."
 }}
 
 # --- CHECK 4: Verify MSI file integrity ---
